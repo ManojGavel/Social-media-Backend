@@ -1,31 +1,28 @@
 const PostModel = require("../Models/PostModel");
 const AppError = require("../Utils/AppError");
 const multer = require("multer");
+const path = require("path");
 
 const protect = require("../Controllers/AuthController");
 
-exports.createPost = async (req, res, next) => {
+exports.createPost = async (req, res) => {
   try {
-    console.log("come to create post");
-    const { title, description, image } = req.body;
-    console.log(req.file, "image");
-    const newPost = await PostModel.create({
+    const { file } = req;
+    const { title, description } = req.body;
+    const postImageData = await PostModel.create({
       title,
+      image: process.env.BASE_URL_POST + file.filename,
       description,
-      image,
       user: req.user._id,
     });
-    res.status(201).json({
-      status: "success",
-      data: {
-        newPost,
-      },
+    return res.status(200).json({
+      status: 200,
+      message: "Post images successfully!",
+      data: postImageData,
     });
-    console.log("come to end");
-  } catch (err) {
-    res.status(400).json({
-      status: "fail",
-      message: err.message,
+  } catch (error) {
+    return res.status(500).json({
+      message: "Unexpected error,please try again later!",
     });
   }
 };
@@ -44,28 +41,50 @@ exports.getPosts = async (req, res, next) => {
   }
 };
 
-
+const uploadPath = path.join(__dirname, "../public");
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, `${__dirname}`);
-  },
+  destination: uploadPath,
   filename: function (req, file, cb) {
-    const ext = file.mimetype.split("/")[1];
-    cb(null, `post-${req.body.user_id}-${Date.now()}.${ext}`); // soon going to add the
+    try {
+      cb(
+        null,
+        file.fieldname + "_" + Date.now() + path.extname(file.originalname)
+      );
+    } catch (err) {
+      console.log("error");
+    }
   },
 });
-const multerFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith("image")) {
-    cb(null, true);
-  } else {
-    cb(new Error("Not an image! Please upload only images."), false);
+
+exports.upload = multer({ storage: storage });
+
+exports.addLike = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { user } = req;
+    const post = await PostModel.findById(id);
+    if (!post) {
+      return res.status(404).json({
+        message: "Post not found",
+      });
+    }
+    if (post.likes.includes(user._id)) {
+      post.likes = post.likes.filter((like) => like != user._id);
+      await post.save();
+      return res.status(400).json({
+        message: "You already liked this post and it has been unliked!",
+      });
+
+    }
+    post.likes.push(user._id);
+    await post.save();
+    res.status(200).json({
+      message: "Post liked successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Unexpected error, please try again later!",
+    });
   }
 };
 
-exports.uploadImage = multer({
-  storage,
-  fileFilter: multerFilter,
-//   limits: {
-//     fileSize: 1024 * 1024 * 5,
-//   },
-});
