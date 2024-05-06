@@ -1,4 +1,5 @@
-const FriendsModel = require('../models/FriendsModel'); 
+const FriendsModel = require('../Models/FriendsModels'); 
+const UserModel = require('../Models/UserModel');
 
 exports.addFriend = async (req, res) => {
     try {
@@ -38,6 +39,18 @@ exports.getFriends = async (req, res) => {
     }
 };
 
+exports.getAllUserList= async (req, res) => {
+    try {
+        const users = await UserModel.find({})
+        res.status(200).json({
+            data: users,
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: "Unexpected error, please try again later!",
+        });
+    }
+};
 exports.removeFriend = async (req, res) => {
     try {
         const { id } = req.params;

@@ -37,9 +37,31 @@ exports.getPosts = async (req, res, next) => {
       },
     });
   } catch (err) {
-    next(AppError(err.message, 400));
+    // next(AppError(err.message, 400));
+    res.status(500).json({
+      message: "Unexpected error, please try again later!",
+    });
   }
 };
+
+exports.getPostsbyFirends = async (req, res, next) => {
+  try {
+    const { user } = req;
+    const posts = await PostModel.find({ user: { $in: user.friends } });
+    res.status(200).json({
+      status: "success",
+      data: {
+        posts,
+      },
+    });
+  } catch (err) {
+    // next(AppError(err.message, 400));
+    res.status(500).json({
+      message: "Unexpected error, please try again later!",
+    });
+  }
+};
+
 
 const uploadPath = path.join(__dirname, "../public");
 const storage = multer.diskStorage({
@@ -88,3 +110,31 @@ exports.addLike = async (req, res) => {
   }
 };
 
+exports.addComment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { user } = req;
+    const { comment } = req.body;
+    const post = await PostModel.findById(id);
+    if
+      (!post) {
+      return res.status(404).json({
+        message: "Post not found",
+      });
+    }
+    const commentData = {
+      comment,
+      user: user._id,
+    };
+    post.comments.push(commentData);
+    await post.save();
+    res.status(200).json({
+      message: "Comment added successfully",
+    });
+  }
+  catch (error) {
+    res.status(500).json({
+      message: "Unexpected error, please try again later!",
+    });
+  }
+};
