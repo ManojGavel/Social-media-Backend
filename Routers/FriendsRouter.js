@@ -16,6 +16,6 @@ router.route("/remove/:id").delete(protect,removeFriend);
 router.route("/requests").get(protect,getFriendRequests);
 router.route("/accept/:id").patch(protect,acceptFriendRequest);
 router.route("/decline/:id").patch(protect,declineFriendRequest);
-router.route("/friendsList").get(getAllUserList);
+router.route("/friendsList").get(protect,getAllUserList);
 
 module.exports = router;

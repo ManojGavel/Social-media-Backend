@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv").config();
 const { promisify } = require("util");
+const FriendsModels = require("../Models/FriendsModels");
 
 const signToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -32,13 +33,26 @@ const createSendToken = (user, statusCode, res) => {
 
 exports.signup = async (req, res) => {
   try {
-      const { name, email, password, confirmPassword } = req.body;
-      console.log(name,"name",email,"email",password,"password",confirmPassword,"confirmPassword")
+    const { name, email, password, confirmPassword } = req.body;
+    console.log(
+      name,
+      "name",
+      email,
+      "email",
+      password,
+      "password",
+      confirmPassword,
+      "confirmPassword"
+    );
     const newUser = await UserModel.create({
       name,
       email,
       password,
       confirmPassword,
+    });
+
+    FriendsModels.create({
+      user: newUser._id,
     });
     createSendToken(newUser, 201, res);
   } catch (err) {
