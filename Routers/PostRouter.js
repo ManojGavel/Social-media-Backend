@@ -8,7 +8,7 @@ const {
   upload,
   addLike,
   addComment,
-  getPostsbyFirends
+  getPostsbyFirends,
   //   getPost,
   //   updatePost,
   //   deletePost,

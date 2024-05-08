@@ -8,6 +8,7 @@ const protect = require("../Controllers/AuthController");
 exports.createPost = async (req, res) => {
   try {
     const { file } = req;
+    console.log(req.file, "file")
     const { title, description } = req.body;
     const postImageData = await PostModel.create({
       title,
